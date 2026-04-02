@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InsurCalc KZ — Калькулятор ОСАГО/КАСКО</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px}
+body{
+  font-family:'Manrope',system-ui,sans-serif;
+  background:#0a1628;
+  color:#e2e8f0;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+:root{
+  --teal:#00c9a7;--teal-d:#00a889;
+  --navy:#0a1628;--gray:#94a3b8;
+  --gold:#f59e0b;--red:#ef4444;--green:#10b981;
+  --r8:8px;--r12:12px;--r16:16px;--r20:20px;--r99:999px;
+}
+.wrap{min-height:100vh;background:linear-gradient(160deg,#0a1628 0%,#0d2040 60%,#071220 100%)}
+/* HEADER */
+header{position:sticky;top:0;z-index:100;background:rgba(10,22,40,0.9);backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,0.07);padding:0 20px}
+.hdr{max-width:760px;margin:0 auto;height:60px;display:flex;align-items:center;gap:12px}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0}
+.logo-ico{width:34px;height:34px;background:linear-gradient(135deg,#f59e0b,#ef8c00);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.logo-txt{font-size:16px;font-weight:800;color:#fff;letter-spacing:-.3px}
+.logo-txt span{color:var(--teal)}
+.prog-wrap{flex:1;max-width:360px;margin:0 auto}
+.prog-track{height:5px;background:rgba(255,255,255,0.1);border-radius:var(--r99);overflow:hidden;margin-bottom:5px}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal-d));border-radius:var(--r99);transition:width .5s}
+.prog-dots{display:flex;gap:3px}
+.pd{flex:1;height:3px;border-radius:var(--r99);background:rgba(255,255,255,0.1);transition:background .3s}
+.pd.done{background:var(--teal)}.pd.cur{background:rgba(0,201,167,0.5)}
+.slbl{font-size:11px;font-weight:700;color:rgba(255,255,255,0.35);white-space:nowrap;flex-shrink:0}
+.slbl b{color:var(--teal)}
+/* MAIN */
+main{max-width:760px;margin:0 auto;padding:28px 20px 110px}
+/* SCREENS */
+.sc{display:none}
+.sc.on{display:block;animation:fup .3s ease both}
+@keyframes fup{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+/* SCREEN HEAD */
+.stag{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;background:rgba(0,201,167,0.1);border:1px solid rgba(0,201,167,0.22);border-radius:var(--r99);font-size:11px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px}
+.stitle{font-size:28px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:6px}
+.ssub{font-size:14px;color:var(--gray);line-height:1.6;margin-bottom:22px}
+/* CARD */
+.card{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.09);border-radius:var(--r20);padding:22px}
+/* INSURANCE CARDS */
+.igrid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:14px}
+.icombo{grid-column:1/-1}
+.icard{position:relative;background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.08);border-radius:var(--r20);padding:20px;cursor:pointer;transition:all .22s}
+.icard:hover{border-color:rgba(0,201,167,0.4);background:rgba(0,201,167,0.05);transform:translateY(-2px)}
+.icard.sel{border-color:var(--teal);background:rgba(0,201,167,0.08);transform:translateY(-2px);box-shadow:0 0 0 1px var(--teal),0 8px 24px rgba(0,201,167,0.14)}
+.icard input[type=radio]{position:absolute;opacity:0;width:0;height:0}
+.icb{position:absolute;top:14px;right:14px;width:20px;height:20px;border:2px solid rgba(255,255,255,0.2);border-radius:50%;transition:.2s}
+.icard.sel .icb{background:var(--teal);border-color:var(--teal)}
+.icb::after{content:'';display:block;width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(45deg) translate(2px,-1px);opacity:0}
+.icard.sel .icb::after{opacity:1}
+.iemoji{font-size:26px;display:block;margin-bottom:10px}
+.iname{font-size:17px;font-weight:800;color:#fff;margin-bottom:2px}
+.ifull{font-size:11px;color:rgba(255,255,255,0.38);margin-bottom:8px}
+.idesc{font-size:12px;color:rgba(255,255,255,0.5);line-height:1.5}
+.ibadge{display:inline-block;margin-top:9px;padding:2px 9px;border-radius:var(--r99);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.breq{background:rgba(239,68,68,.14);color:#f87171}.bopt{background:rgba(59,130,246,.14);color:#60a5fa}.bhot{background:rgba(245,158,11,.14);color:#fcd34d}
+.trust{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:var(--r12)}
+.tlbl{font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+.tlogos{display:flex;gap:8px;flex-wrap:wrap}
+.tl{padding:4px 10px;background:rgba(255,255,255,0.06);border-radius:6px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.35)}
+/* FORM */
+.fstack{display:flex;flex-direction:column;gap:14px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.fg{display:flex;flex-direction:column;gap:5px}
+.lbl{font-size:11px;font-weight:700;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:.6px;display:flex;align-items:center;gap:5px}
+.req{color:var(--teal)}
+.inp,.sel{width:100%;padding:12px 14px;background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.1);border-radius:var(--r12);font-family:'Manrope',sans-serif;font-size:14px;font-weight:500;color:#fff;transition:.2s;outline:none;-webkit-appearance:none;appearance:none}
+.inp::placeholder{color:rgba(255,255,255,0.22)}
+.inp:focus,.sel:focus{border-color:var(--teal);background:rgba(0,201,167,0.06);box-shadow:0 0 0 3px rgba(0,201,167,0.1)}
+.inp.vok{border-color:var(--green)}.inp.verr{border-color:var(--red)}
+.sel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 5 5-5' stroke='rgba(255,255,255,.35)' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;cursor:pointer}
+.sel option{background:#1a2e44;color:#fff}
+.vinc{font-size:11px;font-weight:600;color:rgba(255,255,255,0.3);text-align:right;margin-top:2px}
+.vinc.ok{color:var(--green)}
+/* TOOLTIP */
+.tip{position:relative;display:inline-flex;vertical-align:middle}
+.tico{width:16px;height:16px;background:rgba(255,255,255,0.1);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:rgba(255,255,255,0.45);font-weight:800;cursor:help;transition:.2s;font-style:normal;line-height:1}
+.tico:hover{background:var(--teal);color:#fff}
+.tbox{position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);background:#1e3050;border:1px solid rgba(255,255,255,0.12);border-radius:var(--r12);padding:9px 13px;font-size:12px;color:#fff;line-height:1.5;width:220px;pointer-events:none;opacity:0;visibility:hidden;transition:.2s;z-index:300;box-shadow:0 8px 24px rgba(0,0,0,0.4);white-space:normal;font-weight:400;text-transform:none;letter-spacing:0}
+.tbox::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#1e3050}
+.tip:hover .tbox{opacity:1;visibility:visible}
+/* INFO NOTE */
+.inote{display:flex;align-items:center;gap:8px;padding:11px 13px;background:rgba(59,130,246,0.07);border:1px solid rgba(59,130,246,0.15);border-radius:var(--r12);font-size:12px;color:rgba(255,255,255,0.45)}
+.inote span:first-child{font-size:16px;flex-shrink:0}
+/* DRIVERS */
+.dblk{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.08);border-radius:var(--r20);overflow:hidden;margin-bottom:11px;animation:fup .25s ease both}
+.dhdr{display:flex;align-items:center;gap:11px;padding:14px 18px}
+.dnum{width:30px;height:30px;background:rgba(0,201,167,0.12);border:1px solid rgba(0,201,167,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:var(--teal);flex-shrink:0}
+.dinfo{flex:1}
+.dtitle{font-size:13px;font-weight:700;color:#fff}
+.dsub2{font-size:11px;color:var(--gray)}
+.ddel{width:26px;height:26px;border-radius:50%;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.08);color:#f87171;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;transition:.2s;flex-shrink:0}
+.ddel:hover{background:rgba(239,68,68,0.2)}
+.dbody{padding:0 18px 18px;display:flex;flex-direction:column;gap:11px}
+.wban{display:flex;gap:9px;padding:10px 13px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:var(--r12);animation:fup .25s ease}
+.wico{font-size:15px;flex-shrink:0;margin-top:1px}
+.wtxt{font-size:12px;color:#fcd34d;line-height:1.5}
+.togrow{display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.07);border-radius:var(--r12)}
+.toglbl{font-size:13px;font-weight:600;color:rgba(255,255,255,0.65)}
+.tog{position:relative;width:40px;height:22px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.togsl{position:absolute;inset:0;background:rgba(255,255,255,0.12);border-radius:var(--r99);cursor:pointer;transition:.2s}
+.togsl::before{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.tog input:checked+.togsl{background:var(--teal)}
+.tog input:checked+.togsl::before{transform:translateX(18px)}
+.adddrv{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;padding:12px;position:sticky;bottom:88px;z-index:50;background:rgba(0,201,167,0.07);border:1.5px dashed rgba(0,201,167,0.3);border-radius:var(--r20);font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;color:var(--teal);cursor:pointer;transition:.2s;margin-top:4px}
+.adddrv:hover{background:rgba(0,201,167,0.12);border-color:rgba(0,201,167,0.5)}
+.adddrv:disabled{opacity:.4;cursor:not-allowed}
+/* CHECKBOX */
+.chkrow{display:flex;align-items:flex-start;gap:9px;cursor:pointer;padding:12px 14px;background:rgba(255,255,255,0.03);border:1.5px solid rgba(255,255,255,0.07);border-radius:var(--r12)}
+.chkrow input[type=checkbox]{width:17px;height:17px;accent-color:var(--teal);flex-shrink:0;margin-top:2px;cursor:pointer}
+.chklbl{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.5}
+.chklbl a{color:var(--teal);text-decoration:none}
+/* RESULTS */
+.fbar{display:flex;gap:7px;margin-bottom:16px;flex-wrap:wrap}
+.chip{padding:6px 13px;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.09);border-radius:var(--r99);font-size:12px;font-weight:600;color:var(--gray);cursor:pointer;transition:.2s}
+.chip:hover{border-color:rgba(0,201,167,0.4);color:#fff}
+.chip.on{background:rgba(0,201,167,0.1);border-color:var(--teal);color:var(--teal)}
+.rcnt{font-size:13px;color:var(--gray);margin-bottom:14px}
+.rcnt b{color:var(--teal)}
+.skelc{height:100px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:var(--r20);margin-bottom:10px;overflow:hidden;position:relative}
+.skelc::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.05),transparent);animation:shim 1.4s infinite}
+@keyframes shim{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.skelt{text-align:center;padding:18px 0;font-size:13px;color:rgba(255,255,255,0.35)}
+.iresult{background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.08);border-radius:var(--r20);padding:18px;display:flex;align-items:center;gap:14px;margin-bottom:10px;cursor:pointer;transition:all .22s;position:relative;flex-wrap:wrap}
+.iresult:hover{border-color:rgba(0,201,167,0.4);transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,0.25)}
+.iresult.best{border-color:rgba(0,201,167,0.28);background:rgba(0,201,167,0.05)}
+.ilogo{width:48px;height:48px;border-radius:var(--r12);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;letter-spacing:.3px}
+.iinfo{flex:1;min-width:0}
+.iname2{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px}
+.imeta{font-size:11px;color:var(--gray);margin-bottom:5px}
+.stars{font-size:12px;color:var(--gold)}
+.stcnt{font-size:11px;color:var(--gray);margin-left:3px}
+.iright{text-align:right;flex-shrink:0}
+.iprice{font-size:20px;font-weight:800;color:#fff;line-height:1}
+.ipsub{font-size:11px;color:var(--gray);margin-top:2px}
+.rbadge{position:absolute;top:10px;right:62px;padding:2px 8px;border-radius:var(--r99);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.rbbest{background:rgba(0,201,167,0.2);color:var(--teal)}.rbrec{background:rgba(59,130,246,0.2);color:#60a5fa}
+.btnpick{padding:8px 16px;background:var(--teal);color:#fff;border:none;border-radius:var(--r12);font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:.2s;white-space:nowrap;flex-shrink:0}
+.btnpick:hover{background:var(--teal-d);transform:scale(1.03)}
+/* POLICY DETAILS */
+.polhdr{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:20px;background:rgba(0,201,167,0.08);border:1.5px solid rgba(0,201,167,0.22);border-radius:var(--r20);margin-bottom:14px}
+.pollogo{width:54px;height:54px;border-radius:var(--r12);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+.polprice{font-size:32px;font-weight:800;color:#fff;line-height:1}
+.polpsub{font-size:12px;color:var(--gray)}
+.polbadge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;background:rgba(0,201,167,0.15);border-radius:var(--r99);font-size:11px;font-weight:700;color:var(--teal);margin-top:4px}
+.acc{border:1.5px solid rgba(255,255,255,0.08);border-radius:var(--r20);overflow:hidden;margin-bottom:14px}
+.aitem{border-bottom:1px solid rgba(255,255,255,0.06)}
+.aitem:last-child{border-bottom:none}
+.ahdr{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;background:rgba(255,255,255,0.03);transition:.2s;user-select:none}
+.ahdr:hover{background:rgba(255,255,255,0.05)}
+.atitle{font-size:13px;font-weight:700;color:#fff}
+.aarr{font-size:11px;color:var(--gray);transition:transform .22s}
+.aitem.open .aarr{transform:rotate(180deg)}
+.abody{display:none;padding:14px 18px;background:rgba(255,255,255,0.02)}
+.aitem.open .abody{display:block}
+.covlist{list-style:none;display:flex;flex-direction:column;gap:8px}
+.covlist li{display:flex;align-items:flex-start;gap:9px;font-size:13px;color:rgba(255,255,255,0.6);line-height:1.4}
+.ci{font-size:13px;flex-shrink:0;margin-top:1px}
+.clist{display:flex;flex-direction:column;gap:9px}
+.crow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.cleft{display:flex;align-items:center;gap:7px}
+.cname{font-size:13px;font-weight:600;color:rgba(255,255,255,0.65)}
+.cv{font-size:14px;font-weight:800}
+.cup{color:#f87171}.cdn{color:var(--green)}.ceq{color:rgba(255,255,255,0.5)}
+/* PAYMENT */
+.pmethods{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:18px}
+.pm{border:1.5px solid rgba(255,255,255,0.1);border-radius:var(--r16);padding:13px;cursor:pointer;transition:.2s;background:rgba(255,255,255,0.04);display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center}
+.pm:hover{border-color:rgba(0,201,167,0.4)}
+.pm.sel{border-color:var(--teal);background:rgba(0,201,167,0.08);box-shadow:0 0 0 1px var(--teal)}
+.pmico{font-size:22px}
+.pmname{font-size:12px;font-weight:700;color:rgba(255,255,255,0.65)}
+.psum{padding:18px;background:rgba(255,255,255,0.04);border:1.5px solid rgba(255,255,255,0.08);border-radius:var(--r20);margin-bottom:14px}
+.prow{display:flex;justify-content:space-between;align-items:center;padding:5px 0}
+.prlbl{font-size:13px;color:var(--gray)}.prval{font-size:13px;font-weight:600;color:rgba(255,255,255,0.8)}
+.prow.tot{border-top:1px solid rgba(255,255,255,0.08);margin-top:7px;padding-top:11px}
+.prow.tot .prlbl{font-size:15px;font-weight:700;color:#fff}
+.prow.tot .prval{font-size:22px;font-weight:800;color:var(--teal)}
+.qrblk{display:flex;flex-direction:column;align-items:center;gap:11px;padding:22px}
+.qrimg{width:140px;height:140px;background:#fff;border-radius:var(--r16);display:flex;align-items:center;justify-content:center;font-size:70px}
+.qrnote{font-size:12px;color:var(--gray);text-align:center;line-height:1.6}
+.slogos{display:flex;justify-content:center;gap:9px;margin-top:14px;flex-wrap:wrap}
+.sl{padding:3px 9px;background:rgba(255,255,255,0.06);border-radius:6px;font-size:11px;font-weight:700;color:rgba(255,255,255,0.3)}
+/* SUCCESS */
+.swrap{text-align:center;padding:10px 0}
+.sico{width:90px;height:90px;background:linear-gradient(135deg,var(--teal),var(--teal-d));border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:40px;animation:pulse 2s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,201,167,0.4)}70%{box-shadow:0 0 0 18px rgba(0,201,167,0)}100%{box-shadow:0 0 0 0 rgba(0,201,167,0)}}
+.spolcard{background:rgba(255,255,255,0.05);border:1.5px solid rgba(0,201,167,0.2);border-radius:var(--r20);padding:20px;margin:20px 0;text-align:left}
+.spr{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px}
+.spr:last-child{border-bottom:none}
+.sprl{color:var(--gray)}.sprv{font-weight:700;color:#fff}
+.sacts{display:flex;flex-direction:column;gap:9px}
+.snote{font-size:12px;color:rgba(255,255,255,0.3);margin-top:11px}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:13px 22px;border-radius:var(--r12);font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;border:none;cursor:pointer;transition:.2s;text-decoration:none;white-space:nowrap}
+.btn:active{transform:scale(.98)}
+.btn-p{background:linear-gradient(135deg,var(--teal),var(--teal-d));color:#fff;box-shadow:0 4px 14px rgba(0,201,167,0.28);width:100%}
+.btn-p:hover:not(:disabled){box-shadow:0 6px 20px rgba(0,201,167,0.38);transform:translateY(-1px)}
+.btn-p:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-s{background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.65);width:100%}
+.btn-s:hover{background:rgba(255,255,255,0.1);color:#fff}
+.btn-o{background:transparent;border:1.5px solid rgba(0,201,167,0.4);color:var(--teal);width:100%}
+.btn-o:hover{background:rgba(0,201,167,0.08)}
+.bback{width:auto !important;flex-shrink:0;background:rgba(255,255,255,0.07);border:1.5px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.6);padding:13px 18px;border-radius:var(--r12);font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.bback:hover{background:rgba(255,255,255,0.1);color:#fff}
+/* FOOTER NAV */
+.fnav{position:fixed;bottom:0;left:0;right:0;padding:14px 20px;background:rgba(10,22,40,0.93);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,0.07);z-index:99}
+.fnav-inner{max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:center}
+/* CUSTOM S6 FOOTER */
+.s6nav{position:fixed;bottom:0;left:0;right:0;padding:14px 20px;background:rgba(10,22,40,0.93);backdrop-filter:blur(18px);border-top:1px solid rgba(255,255,255,0.07);z-index:99;display:none}
+.s6nav-inner{max-width:760px;margin:0 auto;display:flex;gap:10px}
+/* TOAST */
+.toast{position:fixed;bottom:95px;left:50%;transform:translateX(-50%) translateY(16px);background:#1e3050;border:1px solid rgba(255,255,255,0.12);color:#fff;padding:11px 18px;border-radius:var(--r12);font-size:13px;font-weight:600;z-index:9999;opacity:0;transition:.3s ease;box-shadow:0 8px 24px rgba(0,0,0,0.4);white-space:nowrap;max-width:calc(100vw - 40px);text-align:center}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+@media(max-width:580px){
+  .stitle{font-size:22px}.igrid{grid-template-columns:1fr}.icombo{grid-column:auto}
+  .frow{grid-template-columns:1fr}.pmethods{grid-template-columns:1fr 1fr}
+  main{padding:22px 14px 100px}header{padding:0 14px}.fnav{padding:12px 14px}.s6nav{padding:12px 14px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="hdr">
+    <a class="logo" href="#"><div class="logo-ico">🛡️</div><div class="logo-txt">InsurCalc <span>KZ</span></div></a>
+    <div class="prog-wrap">
+      <div class="prog-track"><div class="prog-fill" id="pbar" style="width:12.5%"></div></div>
+      <div class="prog-dots" id="pdots"></div>
+    </div>
+    <div class="slbl">Шаг <b id="stepnum">1</b> из 8</div>
+  </div>
+</header>
+
+<main>
+
+<!-- S1 -->
+<div class="sc on" id="s1">
+  <div class="stag">📋 Шаг 1</div>
+  <h1 class="stitle">Рассчитайте страховку<br>за 5 минут</h1>
+  <p class="ssub">Выберите тип страхования и получите предложения от ведущих страховщиков Казахстана</p>
+  <div class="igrid">
+    <label class="icard" data-t="osago">
+      <input type="radio" name="itype" value="osago">
+      <div class="icb"></div>
+      <span class="iemoji">🚗</span>
+      <div class="iname">ОСАГО</div>
+      <div class="ifull">Обязательное страхование</div>
+      <div class="idesc">Защита от ответственности за причинение вреда третьим лицам при ДТП</div>
+      <span class="ibadge breq">Обязательный</span>
+    </label>
+    <label class="icard" data-t="kasko">
+      <input type="radio" name="itype" value="kasko">
+      <div class="icb"></div>
+      <span class="iemoji">🛡️</span>
+      <div class="iname">КАСКО</div>
+      <div class="ifull">Добровольное страхование</div>
+      <div class="idesc">Комплексная защита от угона, ДТП и повреждений</div>
+      <span class="ibadge bopt">Добровольный</span>
+    </label>
+    <label class="icard icombo" data-t="combo">
+      <input type="radio" name="itype" value="combo">
+      <div class="icb"></div>
+      <span class="iemoji">✨</span>
+      <div class="iname">ОСАГО + КАСКО</div>
+      <div class="ifull">Комплексная защита · Выгоднее на 5%</div>
+      <div class="idesc">Полная защита: обязательное страхование и защита вашего авто в одном полисе</div>
+      <span class="ibadge bhot">🔥 Выгодный пакет</span>
+    </label>
+  </div>
+  <div class="trust">
+    <div class="tlbl">Партнёры</div>
+    <div class="tlogos"><div class="tl">Nomad</div><div class="tl">Freedom</div><div class="tl">AMANAT</div><div class="tl">Jusan</div><div class="tl">Kazakhmys</div></div>
+  </div>
+</div>
+
+<!-- S2 -->
+<div class="sc" id="s2">
+  <div class="stag">🚗 Шаг 2</div>
+  <h2 class="stitle">Данные об автомобиле</h2>
+  <p class="ssub">Укажите характеристики вашего транспортного средства</p>
+  <div class="card"><div class="fstack">
+    <div class="frow">
+      <div class="fg"><label class="lbl" for="cbrand">Марка <span class="req">*</span></label><select class="sel" id="cbrand"><option value="">Выберите марку</option></select></div>
+      <div class="fg"><label class="lbl" for="cmodel">Модель <span class="req">*</span></label><select class="sel" id="cmodel" disabled><option value="">Сначала марку</option></select></div>
+    </div>
+    <div class="frow">
+      <div class="fg"><label class="lbl" for="cyear">Год выпуска <span class="req">*</span></label><select class="sel" id="cyear"><option value="">Год</option></select></div>
+      <div class="fg"><label class="lbl" for="cpower">Мощность (л.с.) <span class="req">*</span></label><input class="inp" type="text" id="cpower" placeholder="150" inputmode="numeric"></div>
+    </div>
+    <div class="fg">
+      <label class="lbl" for="cvin">VIN-номер <span class="req">*</span>
+        <span class="tip"><i class="tico">?</i><span class="tbox">17-символьный код в строке «E» ПТС. Буквы I, O, Q не используются.</span></span>
+      </label>
+      <input class="inp" type="text" id="cvin" placeholder="ВВЕДИТЕ 17 СИМВОЛОВ ИЗ ПТС" maxlength="17" autocomplete="off" spellcheck="false">
+      <div class="vinc" id="vinc">0/17 символов</div>
+    </div>
+    <div class="fg" id="kvalrow" style="display:none">
+      <label class="lbl" for="cval">Стоимость автомобиля (₸) <span class="req">*</span></label>
+      <input class="inp" type="text" id="cval" placeholder="8 500 000" inputmode="numeric">
+    </div>
+    <div class="inote"><span>⚡</span><span>Автозаполнение по VIN через eGov RK — <b style="color:var(--teal)">в разработке</b></span></div>
+  </div></div>
+</div>
+
+<!-- S3 -->
+<div class="sc" id="s3">
+  <div class="stag">👤 Шаг 3</div>
+  <h2 class="stitle">Данные о водителях</h2>
+  <p class="ssub">Укажите информацию обо всех допущенных к управлению</p>
+  <div id="drvlist"></div>
+  <button class="adddrv" id="adddrv"><span>+</span><span id="addlbl">Добавить водителя (1/5)</span></button>
+</div>
+
+<!-- S4 -->
+<div class="sc" id="s4">
+  <div class="stag">📍 Шаг 4</div>
+  <h2 class="stitle">Контакты и регион</h2>
+  <p class="ssub">Последний шаг перед расчётом</p>
+  <div class="card"><div class="fstack">
+    <div class="fg"><label class="lbl" for="cname">ФИО <span class="req">*</span></label><input class="inp" type="text" id="cname" placeholder="Иванов Иван Иванович" autocomplete="name"></div>
+    <div class="frow">
+      <div class="fg"><label class="lbl" for="cphone">Телефон <span class="req">*</span></label><input class="inp" type="tel" id="cphone" placeholder="+7 (___) ___-__-__"></div>
+      <div class="fg"><label class="lbl" for="cemail">Email <span class="req">*</span></label><input class="inp" type="email" id="cemail" placeholder="you@email.com"></div>
+    </div>
+    <div class="fg">
+      <label class="lbl" for="cregion">Регион регистрации ТС <span class="req">*</span>
+        <span class="tip"><i class="tico">?</i><span class="tbox">Влияет на территориальный коэффициент КТ. Алматы и Астана имеют повышенный коэффициент.</span></span>
+      </label>
+      <select class="sel" id="cregion"><option value="">Выберите регион</option></select>
+    </div>
+    <label class="chkrow" for="cconsent"><input type="checkbox" id="cconsent"><span class="chklbl">Согласен(на) на обработку персональных данных согласно <a href="#">Политике конфиденциальности</a></span></label>
+  </div></div>
+  <div class="inote" style="margin-top:12px"><span>🔒</span><span>Данные защищены SSL и не передаются без вашего согласия</span></div>
+</div>
+
+<!-- S5 -->
+<div class="sc" id="s5">
+  <div class="stag">📊 Шаг 5</div>
+  <h2 class="stitle">Результаты расчёта</h2>
+  <p class="ssub">Сравните предложения от проверенных страховщиков</p>
+  <div class="fbar">
+    <button class="chip on" data-f="all">Все</button>
+    <button class="chip" data-f="price">Сначала дешевле</button>
+    <button class="chip" data-f="rating">По рейтингу</button>
+  </div>
+  <div class="rcnt" id="rcnt"></div>
+  <div id="resbox"></div>
+</div>
+
+<!-- S6 -->
+<div class="sc" id="s6">
+  <div class="stag">📄 Шаг 6</div>
+  <h2 class="stitle">Детали полиса</h2>
+  <p class="ssub">Ознакомьтесь с условиями выбранного страховщика</p>
+  <div class="polhdr">
+    <div class="pollogo" id="pllogo"></div>
+    <div>
+      <div style="font-size:11px;color:var(--gray);margin-bottom:3px">Страховщик</div>
+      <div id="plname" style="font-size:17px;font-weight:800;color:#fff;margin-bottom:5px"></div>
+      <div class="polbadge">⚡ Оформление за 2 минуты</div>
+    </div>
+    <div style="margin-left:auto;text-align:right"><div class="polprice" id="plprice"></div><div class="polpsub">в год</div></div>
+  </div>
+  <div class="acc">
+    <div class="aitem open">
+      <div class="ahdr"><span class="atitle">🛡️ Покрытие и условия</span><span class="aarr">▼</span></div>
+      <div class="abody"><ul class="covlist" id="covlist"></ul></div>
+    </div>
+    <div class="aitem">
+      <div class="ahdr"><span class="atitle">📐 Расшифровка расчёта</span><span class="aarr">▼</span></div>
+      <div class="abody"><div class="clist" id="clist"></div></div>
+    </div>
+    <div class="aitem">
+      <div class="ahdr"><span class="atitle">📋 Документы</span><span class="aarr">▼</span></div>
+      <div class="abody"><ul class="covlist"><li><span class="ci">📄</span>Паспорт владельца ТС</li><li><span class="ci">🚗</span>Свидетельство о регистрации ТС</li><li><span class="ci">🪪</span>Водительские удостоверения</li><li><span class="ci">✅</span>КАСКО: техосмотр (авто старше 7 лет)</li></ul></div>
+    </div>
+    <div class="aitem">
+      <div class="ahdr"><span class="atitle">⏱️ Сроки выплат</span><span class="aarr">▼</span></div>
+      <div class="abody"><ul class="covlist"><li><span class="ci">📅</span>ОСАГО: выплата до <b style="color:#fff">30 рабочих дней</b></li><li><span class="ci">🔧</span>КАСКО: ремонт <b style="color:#fff">5 рабочих дней</b></li><li><span class="ci">💳</span>Денежная выплата: <b style="color:#fff">15 рабочих дней</b></li></ul></div>
+    </div>
+  </div>
+  <div style="height:74px"></div>
+</div>
+
+<!-- S7 -->
+<div class="sc" id="s7">
+  <div class="stag">💳 Шаг 7</div>
+  <h2 class="stitle">Безопасная оплата</h2>
+  <p class="ssub">Выберите удобный способ оплаты</p>
+  <div class="psum">
+    <div class="prow"><span class="prlbl">Стоимость полиса</span><span class="prval" id="pbase">—</span></div>
+    <div class="prow"><span class="prlbl">Сервисный сбор (2%)</span><span class="prval" id="pfee">—</span></div>
+    <div class="prow tot"><span class="prlbl">Итого к оплате</span><span class="prval" id="ptot">—</span></div>
+  </div>
+  <div class="pmethods">
+    <div class="pm sel" data-pm="card"><div class="pmico">💳</div><div class="pmname">Банковская карта</div></div>
+    <div class="pm" data-pm="kaspi"><div class="pmico">📱</div><div class="pmname">Kaspi QR</div></div>
+    <div class="pm" data-pm="apple"><div class="pmico">🍎</div><div class="pmname">Apple Pay</div></div>
+    <div class="pm" data-pm="google"><div class="pmico">🤖</div><div class="pmname">Google Pay</div></div>
+  </div>
+  <div class="card" id="pm-card"><div class="fstack">
+    <div class="fg"><label class="lbl">Номер карты</label><input class="inp" type="text" id="cardnum" placeholder="0000 0000 0000 0000" inputmode="numeric" autocomplete="cc-number"></div>
+    <div class="frow">
+      <div class="fg"><label class="lbl">Срок действия</label><input class="inp" type="text" id="cardexp" placeholder="ММ/ГГ" inputmode="numeric" maxlength="5"></div>
+      <div class="fg"><label class="lbl">CVV <span class="tip"><i class="tico">?</i><span class="tbox">3 цифры на обратной стороне карты</span></span></label><input class="inp" type="text" id="cardcvv" placeholder="•••" inputmode="numeric" maxlength="3"></div>
+    </div>
+  </div></div>
+  <div class="card" id="pm-kaspi" style="display:none"><div class="qrblk"><div class="qrimg">🟩</div><div class="qrnote">Откройте Kaspi.kz и отсканируйте QR-код<br><b style="color:rgba(255,255,255,.5)">QR обновляется каждые 5 минут</b></div></div></div>
+  <div class="card" id="pm-digital" style="display:none"><div style="text-align:center;padding:22px"><div style="font-size:44px;margin-bottom:11px">📲</div><p style="font-size:13px;color:var(--gray);line-height:1.6">Нажмите «Оплатить» — вас перенаправят в приложение</p></div></div>
+  <div class="slogos"><div class="sl">🔒 SSL</div><div class="sl">VISA</div><div class="sl">Mastercard</div><div class="sl">3D Secure</div></div>
+</div>
+
+<!-- S8 -->
+<div class="sc" id="s8">
+  <div class="swrap">
+    <div class="sico">✓</div>
+    <h2 class="stitle" style="text-align:center">Полис оформлен!</h2>
+    <p class="ssub" style="text-align:center">Ваш страховой полис успешно оформлен и активирован</p>
+    <div class="spolcard">
+      <div class="spr"><span class="sprl">Номер полиса</span><span class="sprv" id="spnum" style="color:var(--teal);font-family:monospace"></span></div>
+      <div class="spr"><span class="sprl">Страховщик</span><span class="sprv" id="spins"></span></div>
+      <div class="spr"><span class="sprl">Тип страхования</span><span class="sprv" id="sptype"></span></div>
+      <div class="spr"><span class="sprl">Срок действия</span><span class="sprv" id="spperiod"></span></div>
+      <div class="spr"><span class="sprl">Оплачено</span><span class="sprv" id="spprice" style="color:var(--teal)"></span></div>
+    </div>
+    <div class="sacts">
+      <button class="btn btn-p" onclick="alert('PDF скачивается...')">📄 Скачать полис PDF</button>
+      <button class="btn btn-o" onclick="alert('Открывается Wallet...')">🪪 Добавить в Wallet</button>
+      <button class="btn btn-s" id="btnhome">🏠 На главную</button>
+    </div>
+    <p class="snote">📧 Копия отправлена на <b id="spemail" style="color:rgba(255,255,255,.45)"></b></p>
+  </div>
+</div>
+
+</main>
+
+<!-- FOOTER NAV -->
+<div class="fnav" id="fnav">
+  <div class="fnav-inner">
+    <button class="bback" id="btnback" style="display:none">← Назад</button>
+    <button class="btn btn-p" id="btnnext" disabled><span id="nextlbl">Продолжить</span> →</button>
+  </div>
+</div>
+
+<!-- S6 custom footer -->
+<div class="s6nav" id="s6nav">
+  <div class="s6nav-inner">
+    <button class="bback" onclick="go(5)">← Назад</button>
+    <button class="btn btn-p" onclick="go(7)" style="flex:1">Оформить — <span id="s6price"></span></button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──
+var BRANDS=['Toyota','Hyundai','Kia','Lada (АВТОВАЗ)','Chevrolet','Volkswagen','BMW','Mercedes-Benz','Audi','Lexus','Nissan','Honda','Mazda','Ford','Mitsubishi','Skoda','Renault'];
+var MODELS={Toyota:['Camry','RAV4','Land Cruiser 200','Corolla','Highlander','Fortuner','Prado'],Hyundai:['Elantra','Tucson','Santa Fe','Sonata','Accent','Creta'],Kia:['Sportage','Sorento','Cerato','K5','Carnival'],BMW:['3 Series','5 Series','X5','X6','X3'],'Mercedes-Benz':['E-Class','C-Class','GLE','GLC'],'Lada (АВТОВАЗ)':['Vesta','Granta','XRAY','Niva Travel'],Chevrolet:['Malibu','Equinox','Captiva','Tahoe'],Volkswagen:['Polo','Tiguan','Passat','Jetta'],Audi:['A4','A6','Q5','Q7'],Lexus:['RX 350','ES 350','GX 460'],Nissan:['Qashqai','X-Trail','Pathfinder'],Honda:['CR-V','Accord','Civic'],Mazda:['CX-5','CX-9','Mazda 6'],Ford:['Explorer','Edge','Focus'],Mitsubishi:['Outlander','Pajero','ASX'],Skoda:['Octavia','Kodiaq','Karoq'],Renault:['Duster','Logan','Sandero']};
+var REGIONS=['г. Алматы','г. Астана','г. Шымкент','Акмолинская обл.','Актюбинская обл.','Алматинская обл.','Атырауская обл.','ВКО','Жамбылская обл.','ЗКО','Карагандинская обл.','Костанайская обл.','Кызылординская обл.','Мангистауская обл.','Павлодарская обл.','Северо-Казахстанская обл.','Туркестанская обл.','Абайская обл.'];
+var INS=[{id:1,name:'Nomad Insurance',sh:'NMD',bg:'#dbeafe',fg:'#1e40af',rt:4.8,rv:3241,bO:28400,bK:184000,badge:'best',cov:'std'},{id:2,name:'Freedom Finance Life',sh:'FFL',bg:'#d1fae5',fg:'#065f46',rt:4.6,rv:2187,bO:26900,bK:197000,badge:'rec',cov:'prem'},{id:3,name:'Kazakhmys Insurance',sh:'KZI',bg:'#ede9fe',fg:'#5b21b6',rt:4.4,rv:1598,bO:24700,bK:176000,badge:null,cov:'eco'},{id:4,name:'AMANAT Insurance',sh:'AMT',bg:'#ffedd5',fg:'#9a3412',rt:4.2,rv:987,bO:23100,bK:165000,badge:null,cov:'eco'},{id:5,name:'Jusan Life',sh:'JSN',bg:'#d1fae5',fg:'#064e3b',rt:4.7,rv:2543,bO:29800,bK:210000,badge:null,cov:'prem'}];
+var COV={std:{y:['ДТП по вине третьих лиц','Угон и противоправные действия','Стихийные бедствия','Пожар','Наезд на животных'],n:['Умышленное повреждение','Управление в нетрезвом виде']},prem:{y:['Все риски стандартного плана','GAP-страхование','Помощь на дороге 24/7','Эвакуатор при ДТП','Замена авто на время ремонта'],n:['Умышленное повреждение','Гоночные соревнования']},eco:{y:['ДТП по вине третьих лиц','Угон','Пожар','Стихийные бедствия'],n:['Умышленное повреждение','Управление в нетрезвом виде','Повреждение шин']}};
+
+// ── STATE ──
+var S={step:1,type:null,car:{brand:'',model:'',year:'',power:'',vin:''},drivers:[{age:'',exp:'',acc:false}],contact:{name:'',phone:'',email:'',region:''},consent:false,ins:null,pay:'card',filt:'all'};
+
+// ── HELPERS ──
+function el(id){return document.getElementById(id)}
+function fmt(n){return n.toLocaleString('ru-KZ')+' ₸'}
+function toast(m){var t=el('toast');t.textContent=m;t.classList.add('on');setTimeout(function(){t.classList.remove('on')},3000)}
+
+function calcP(ins){
+  var t=S.type,yr=parseInt(S.car.year)||2020,pw=parseInt(S.car.power)||100;
+  var age=parseInt(S.drivers[0].age)||30,exp=parseInt(S.drivers[0].exp)||5;
+  var base=0;
+  if(t==='osago'||t==='combo')base+=ins.bO;
+  if(t==='kasko'||t==='combo')base+=ins.bK;
+  var kbm=S.drivers[0].acc?1.4:0.85,kvs=age<23?1.7:age>55?1.3:1,kex=exp<3?1.5:exp<5?1.2:1;
+  var kag=(2024-yr)>10?1.15:1,kpw=pw>150?1.3:pw>100?1.1:1;
+  var kt=S.contact.region==='г. Алматы'?1.2:S.contact.region==='г. Астана'?1.15:1;
+  return Math.round(base*kbm*kvs*kex*kag*kpw*kt);
+}
+function coeffs(){
+  var age=parseInt(S.drivers[0].age)||30,exp=parseInt(S.drivers[0].exp)||5,pw=parseInt(S.car.power)||100;
+  return[
+    {c:'КБМ',n:'Бонус-малус',v:S.drivers[0].acc?1.4:0.85,t:'Снижает цену за безаварийную езду. Ваш КБМ: '+(S.drivers[0].acc?'1.4 (+40%)':'0.85 (-15%)')},
+    {c:'КВС',n:'Возраст/стаж',v:age<23?1.7:age>55?1.3:1,t:'Коэффициент возраста и стажа водителя.'},
+    {c:'КМ',n:'Мощность',v:pw>150?1.3:pw>100?1.1:1,t:'Коэффициент мощности двигателя.'},
+    {c:'КТ',n:'Территориальный',v:S.contact.region==='г. Алматы'?1.2:S.contact.region==='г. Астана'?1.15:1,t:'Зависит от региона регистрации ТС.'}
+  ];
+}
+
+// ── NAVIGATION ──
+function go(n){
+  el('s6nav').style.display='none';
+  document.querySelectorAll('.sc').forEach(function(s){s.classList.remove('on')});
+  el('s'+n).classList.add('on');
+  S.step=n;
+  // header
+  el('stepnum').textContent=n;
+  el('pbar').style.width=(n/8*100)+'%';
+  document.querySelectorAll('.pd').forEach(function(p,i){
+    p.classList.remove('done','cur');
+    if(i+1<n)p.classList.add('done');
+    else if(i+1===n)p.classList.add('cur');
+  });
+  // footer
+  var fnav=el('fnav'),back=el('btnback'),next=el('btnnext'),lbl=el('nextlbl');
+  fnav.style.display=n===8?'none':'block';
+  if(n===6){fnav.style.display='none';el('s6nav').style.display='block';}
+  back.style.display=n<=1?'none':'flex';
+  var labs={1:'Продолжить',2:'Продолжить',3:'Продолжить',4:'Рассчитать →',7:'Оплатить'};
+  lbl.textContent=labs[n]||'Продолжить';
+  next.style.display=(n===5||n===6)?'none':'flex';
+  if(n===1)next.disabled=!S.type;else next.disabled=false;
+  window.scrollTo({top:0,behavior:'smooth'});
+  // renders
+  if(n===5)renderRes();
+  if(n===6)renderPol();
+  if(n===7)renderPay();
+  if(n===8)renderSuc();
+}
+
+function validate(){
+  var n=S.step;
+  if(n===1&&!S.type){toast('Выберите тип страховки');return false}
+  if(n===2){
+    if(!S.car.brand){toast('Выберите марку');return false}
+    if(!S.car.year){toast('Выберите год выпуска');return false}
+    if(!S.car.power){toast('Укажите мощность');return false}
+    if(S.car.vin.length!==17){toast('VIN должен содержать 17 символов');return false}
+  }
+  if(n===3){
+    for(var i=0;i<S.drivers.length;i++){
+      var d=S.drivers[i];
+      if(!d.age||parseInt(d.age)<18){toast('Возраст водителя '+(i+1)+' — от 18 лет');return false}
+      if(d.exp===''){toast('Укажите стаж водителя '+(i+1));return false}
+    }
+  }
+  if(n===4){
+    if(!S.contact.name.trim()){toast('Введите ФИО');return false}
+    if(!S.contact.phone||S.contact.phone.replace(/\D/g,'').length<11){toast('Введите корректный телефон');return false}
+    if(!S.contact.email.includes('@')){toast('Введите корректный email');return false}
+    if(!S.contact.region){toast('Выберите регион');return false}
+    if(!S.consent){toast('Подтвердите согласие на обработку данных');return false}
+  }
+  if(n===7&&S.pay==='card'){
+    var cn=(el('cardnum').value||'').replace(/\s/g,'');
+    if(cn.length!==16){toast('Введите 16 цифр номера карты');return false}
+    if((el('cardexp').value||'').length!==5){toast('Введите срок ММ/ГГ');return false}
+    if((el('cardcvv').value||'').length!==3){toast('Введите CVV (3 цифры)');return false}
+  }
+  return true;
+}
+
+el('btnnext').addEventListener('click',function(){if(validate())go(S.step+1)});
+el('btnback').addEventListener('click',function(){if(S.step>1)go(S.step-1)});
+
+// ── S1 ──
+document.querySelectorAll('.icard').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('.icard').forEach(function(x){x.classList.remove('sel')});
+    c.classList.add('sel');S.type=c.dataset.t;
+    c.querySelector('input').checked=true;
+    el('btnnext').disabled=false;
+    el('kvalrow').style.display=(S.type==='kasko'||S.type==='combo')?'flex':'none';
+  });
+});
+
+// ── S2 ──
+BRANDS.forEach(function(b){var o=document.createElement('option');o.value=b;o.textContent=b;el('cbrand').appendChild(o)});
+for(var y=2024;y>=1995;y--){var o=document.createElement('option');o.value=y;o.textContent=y;el('cyear').appendChild(o)}
+el('cbrand').addEventListener('change',function(){
+  S.car.brand=this.value;
+  var m=el('cmodel');m.innerHTML='<option value="">Выберите модель</option>';
+  var ms=MODELS[this.value]||[];
+  ms.forEach(function(md){var o=document.createElement('option');o.value=md;o.textContent=md;m.appendChild(o)});
+  if(!ms.length){var o=document.createElement('option');o.value='other';o.textContent='Другая';m.appendChild(o)}
+  m.disabled=false;
+});
+el('cmodel').addEventListener('change',function(){S.car.model=this.value});
+el('cyear').addEventListener('change',function(){S.car.year=this.value});
+el('cpower').addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,4);S.car.power=this.value});
+el('cvin').addEventListener('input',function(){
+  var v=this.value.toUpperCase().replace(/[^A-HJ-NPR-Z0-9]/g,'').slice(0,17);
+  this.value=v;S.car.vin=v;
+  var c=el('vinc');c.textContent=v.length+'/17 символов';c.className='vinc'+(v.length===17?' ok':'');
+  this.className='inp'+(v.length===17?' vok':v.length>0?' ':'');
+});
+
+// ── S3 ──
+function renderDrv(){
+  var box=el('drvlist');box.innerHTML='';
+  S.drivers.forEach(function(d,i){
+    var div=document.createElement('div');div.className='dblk';
+    div.innerHTML='<div class="dhdr"><div class="dnum">'+(i+1)+'</div><div class="dinfo"><div class="dtitle">Водитель '+(i+1)+'</div><div class="dsub2" id="ds'+i+'">Не заполнено</div></div>'+(i>0?'<button class="ddel" onclick="rmDrv('+i+')">×</button>':'')+
+    '</div><div class="dbody">'+
+    '<div class="frow"><div class="fg"><label class="lbl">Возраст <span class="req">*</span></label><input class="inp" type="number" id="da'+i+'" placeholder="32" min="18" max="80" value="'+d.age+'"></div>'+
+    '<div class="fg"><label class="lbl">Стаж (лет) <span class="req">*</span></label><input class="inp" type="number" id="de'+i+'" placeholder="5" min="0" max="60" value="'+d.exp+'"></div></div>'+
+    '<div id="dw'+i+'" class="wban" style="display:none"><span class="wico">⚠️</span><div class="wtxt"><b>Применяется повышающий КВС.</b> Водители до 23 лет или стаж менее 3 лет увеличивают стоимость.</div></div>'+
+    '<div class="togrow"><span class="toglbl">Были ДТП за последний год?</span><label class="tog"><input type="checkbox" id="dc'+i+'"'+(d.acc?' checked':'')+'><span class="togsl"></span></label></div>'+
+    '</div>';
+    box.appendChild(div);
+    (function(idx){
+      el('da'+idx).addEventListener('input',function(){S.drivers[idx].age=this.value;updDW(idx);updDS(idx)});
+      el('de'+idx).addEventListener('input',function(){S.drivers[idx].exp=this.value;updDW(idx);updDS(idx)});
+      el('dc'+idx).addEventListener('change',function(){S.drivers[idx].acc=this.checked});
+    })(i);
+  });
+  var n=S.drivers.length;el('adddrv').disabled=n>=5;el('addlbl').textContent='Добавить водителя ('+n+'/5)';
+}
+function rmDrv(i){S.drivers.splice(i,1);renderDrv()}
+function updDW(i){var d=S.drivers[i],w=el('dw'+i);if(!w)return;var a=parseInt(d.age),e=parseInt(d.exp);w.style.display=((a<23||e<3)&&(d.age||d.exp))?'flex':'none'}
+function updDS(i){var d=S.drivers[i],s=el('ds'+i);if(!s)return;if(d.age&&d.exp)s.textContent=d.age+' лет, стаж '+d.exp+' лет';else if(d.age)s.textContent=d.age+' лет';else s.textContent='Не заполнено'}
+el('adddrv').addEventListener('click',function(){if(S.drivers.length>=5)return;S.drivers.push({age:'',exp:'',acc:false});renderDrv()});
+renderDrv();
+
+// ── S4 ──
+REGIONS.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;el('cregion').appendChild(o)});
+el('cname').addEventListener('input',function(){S.contact.name=this.value});
+el('cemail').addEventListener('input',function(){S.contact.email=this.value});
+el('cregion').addEventListener('change',function(){S.contact.region=this.value});
+el('cconsent').addEventListener('change',function(){S.consent=this.checked});
+el('cphone').addEventListener('input',function(){
+  var v=this.value.replace(/\D/g,'');if(v[0]==='7')v=v.slice(1);v=v.slice(0,10);
+  var m='+7';if(v.length>0)m+=' ('+v.slice(0,3);if(v.length>=3)m+=') '+v.slice(3,6);if(v.length>=6)m+='-'+v.slice(6,8);if(v.length>=8)m+='-'+v.slice(8,10);
+  this.value=m;S.contact.phone=m;
+});
+
+// ── S5 ──
+document.querySelectorAll('.chip').forEach(function(c){
+  c.addEventListener('click',function(){
+    document.querySelectorAll('.chip').forEach(function(x){x.classList.remove('on')});
+    c.classList.add('on');S.filt=c.dataset.f;renderRes();
+  });
+});
+function renderRes(){
+  var box=el('resbox');
+  box.innerHTML='<div class="skelc"></div><div class="skelc"></div><div class="skelc"></div><div class="skelt">Запрашиваем предложения от 12 страховщиков...</div>';
+  el('rcnt').textContent='';
+  setTimeout(function(){
+    var list=INS.map(function(i){return Object.assign({},i,{price:calcP(i)})});
+    if(S.filt==='price')list.sort(function(a,b){return a.price-b.price});
+    else if(S.filt==='rating')list.sort(function(a,b){return b.rt-a.rt});
+    box.innerHTML='';
+    list.forEach(function(ins){
+      var div=document.createElement('div');
+      div.className='iresult'+(ins.badge==='best'?' best':'');
+      var st='★'.repeat(Math.floor(ins.rt))+(ins.rt%1>=0.5?'☆':'');
+      div.innerHTML=(ins.badge?'<div class="rbadge '+(ins.badge==='best'?'rbbest':'rbrec')+'">'+(ins.badge==='best'?'🏆 Лучшая цена':'⭐ Рекомендуем')+'</div>':'')+
+        '<div class="ilogo" style="background:'+ins.bg+';color:'+ins.fg+'">'+ins.sh+'</div>'+
+        '<div class="iinfo"><div class="iname2">'+ins.name+'</div><div class="imeta">ОСАГО/КАСКО · Казахстан</div><div><span class="stars">'+st+'</span><span class="stcnt">'+ins.rt+' ('+ins.rv.toLocaleString('ru-KZ')+')</span></div></div>'+
+        '<div class="iright"><div class="iprice">'+fmt(ins.price)+'</div><div class="ipsub">в год</div></div>'+
+        '<button class="btnpick">Выбрать</button>';
+      div.querySelector('.btnpick').addEventListener('click',function(e){e.stopPropagation();S.ins=ins;go(6)});
+      div.addEventListener('click',function(){S.ins=ins;go(6)});
+      box.appendChild(div);
+    });
+    el('rcnt').innerHTML='Найдено <b>'+list.length+' предложений</b>';
+  },900);
+}
+
+// ── S6 ──
+document.querySelectorAll('.ahdr').forEach(function(h){
+  h.addEventListener('click',function(){
+    var item=h.closest('.aitem'),was=item.classList.contains('open');
+    document.querySelectorAll('.aitem').forEach(function(i){i.classList.remove('open')});
+    if(!was)item.classList.add('open');
+  });
+});
+function renderPol(){
+  var ins=S.ins;if(!ins)return;
+  var cov=COV[ins.cov];
+  el('pllogo').style.cssText='background:'+ins.bg+';color:'+ins.fg;el('pllogo').textContent=ins.sh;
+  el('plname').textContent=ins.name;el('plprice').textContent=fmt(ins.price);el('s6price').textContent=fmt(ins.price);
+  el('covlist').innerHTML=cov.y.map(function(t){return'<li><span class="ci">✅</span>'+t+'</li>'}).join('')+cov.n.map(function(t){return'<li><span class="ci">❌</span><span style="color:rgba(255,255,255,.3)">'+t+'</span></li>'}).join('');
+  el('clist').innerHTML=coeffs().map(function(c){
+    var up=c.v>1,dn=c.v<1,cl=up?'cv cup':dn?'cv cdn':'cv ceq',pct=Math.abs(Math.round((c.v-1)*100));
+    return'<div class="crow"><div class="cleft"><span class="cname">'+c.c+' — '+c.n+'</span><span class="tip"><i class="tico">?</i><span class="tbox">'+c.t+'</span></span></div><span class="'+cl+'">'+c.v+(pct>0?' ('+(up?'+':'-')+pct+'%)':'')+'</span></div>';
+  }).join('');
+}
+
+// ── S7 ──
+function renderPay(){
+  var ins=S.ins;if(!ins)return;
+  var fee=Math.round(ins.price*0.02);
+  el('pbase').textContent=fmt(ins.price);el('pfee').textContent=fmt(fee);el('ptot').textContent=fmt(ins.price+fee);
+  document.querySelectorAll('.pm').forEach(function(m){
+    m.addEventListener('click',function(){
+      document.querySelectorAll('.pm').forEach(function(x){x.classList.remove('sel')});
+      m.classList.add('sel');S.pay=m.dataset.pm;
+      el('pm-card').style.display=S.pay==='card'?'block':'none';
+      el('pm-kaspi').style.display=S.pay==='kaspi'?'block':'none';
+      el('pm-digital').style.display=(S.pay==='apple'||S.pay==='google')?'block':'none';
+    });
+  });
+  el('cardnum').addEventListener('input',function(){var v=this.value.replace(/\D/g,'').slice(0,16);this.value=v.replace(/(.{4})/g,'$1 ').trim()});
+  el('cardexp').addEventListener('input',function(){var v=this.value.replace(/\D/g,'').slice(0,4);if(v.length>=3)v=v.slice(0,2)+'/'+v.slice(2);this.value=v});
+  el('cardcvv').addEventListener('input',function(){this.value=this.value.replace(/\D/g,'').slice(0,3)});
+}
+
+// ── S8 ──
+function renderSuc(){
+  var ins=S.ins;if(!ins)return;
+  var num='KZ-'+Math.random().toString(36).slice(2,8).toUpperCase()+'-'+Date.now().toString().slice(-4);
+  var t=new Date(),n2=new Date(t);n2.setFullYear(t.getFullYear()+1);
+  var f=function(d){return d.toLocaleDateString('ru-KZ',{day:'2-digit',month:'2-digit',year:'numeric'})};
+  el('spnum').textContent=num;el('spins').textContent=ins.name;
+  el('sptype').textContent=S.type==='osago'?'ОСАГО':S.type==='kasko'?'КАСКО':'ОСАГО + КАСКО';
+  el('spperiod').textContent=f(t)+' — '+f(n2);el('spprice').textContent=fmt(ins.price);
+  el('spemail').textContent=S.contact.email||'your@email.com';
+}
+
+el('btnhome').addEventListener('click',function(){
+  S.type=null;S.car={brand:'',model:'',year:'',power:'',vin:''};
+  S.drivers=[{age:'',exp:'',acc:false}];S.contact={name:'',phone:'',email:'',region:''};
+  S.consent=false;S.ins=null;
+  document.querySelectorAll('.icard').forEach(function(c){c.classList.remove('sel')});
+  document.querySelectorAll('input[type=radio]').forEach(function(r){r.checked=false});
+  el('kvalrow').style.display='none';renderDrv();go(1);
+});
+
+// BUILD STEP DOTS
+(function(){
+  var c=el('pdots');
+  for(var i=0;i<8;i++){var d=document.createElement('div');d.className='pd'+(i===0?' cur':'');c.appendChild(d)}
+})();
+
+go(1);
+</script>
+</body>
+</html>
